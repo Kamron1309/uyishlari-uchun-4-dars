@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ed's Todo List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7e22ce',
+                            800: '#6b21a8',
+                            900: '#581c87',
+                        },
+                        gradient1: {
+                            start: '#6a11cb',
+                            end: '#2575fc'
+                        },
+                        gradient2: {
+                            start: '#4e54c8',
+                            end: '#8a2387'
+                        },
+                        gradient3: {
+                            start: '#8a2387',
+                            middle: '#e94057',
+                            end: '#f27121'
+                        }
+                    },
+                    fontFamily: {
+                        poppins: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #4e54c8 0%, #8a2387 100%);
+        }
+        
+        .button-gradient {
+            background: linear-gradient(135deg, #8a2387 0%, #e94057 50%, #f27121 100%);
+        }
+        
+        .progress-gradient {
+            background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+        }
+        
+        .filter-active {
+            background: linear-gradient(135deg, #8a2387 0%, #4e54c8 100%);
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #8a2387 0%, #4e54c8 100%);
+            border-radius: 10px;
+        }
+        
+        /* Checkbox style */
+        input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        input[type="checkbox"]:checked {
+            background-color: #4cd964;
+            border-color: #4cd964;
+        }
+        
+        input[type="checkbox"]:checked::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 6px;
+            width: 6px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen gradient-bg flex justify-center items-center p-5 font-poppins">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1">
+        <header class="header-gradient text-white py-6 px-5 text-center relative overflow-hidden">
+            <div class="absolute inset-0 overflow-hidden">
+                <div class="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-radial-circle opacity-10"></div>
+            </div>
+            <h1 class="text-3xl font-bold mb-4 relative z-10">Ed's Todo List</h1>
+            <div class="w-full bg-white bg-opacity-20 rounded-full h-3 mb-3 relative z-10">
+                <div id="progress-bar" class="progress-gradient h-full rounded-full transition-all duration-500"></div>
+            </div>
+            <div id="progress-text" class="text-sm font-medium relative z-10">0% Complete</div>
+        </header>
+
+        <div class="bg-gray-50 p-6 flex flex-col sm:flex-row gap-4 border-b border-gray-200">
+            <input type="text" id="todo-input" placeholder="Add a new task..." 
+                class="flex-1 px-5 py-4 border-2 border-gray-200 rounded-xl text-base outline-none transition-all focus:border-purple-700 focus:ring-2 focus:ring-purple-200 shadow-sm">
+            <button id="add-btn" class="button-gradient text-white px-6 py-4 rounded-xl font-semibold transition-all hover:-translate-y-0.5 hover:shadow-lg shadow-md">Add Task</button>
+        </div>
+
+        <div class="bg-gray-50 p-5 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-gray-200">
+            <div class="flex flex-wrap gap-3">
+                <button class="filter-btn px-5 py-2.5 bg-gray-100 border-none rounded-lg cursor-pointer text-sm font-medium transition-all hover:-translate-y-0.5 shadow-sm active filter-active text-white" data-filter="all">All</button>
+                <button class="filter-btn px-5 py-2.5 bg-gray-100 border-none rounded-lg cursor-pointer text-sm font-medium transition-all hover:-translate-y-0.5 shadow-sm" data-filter="active">Active</button>
+                <button class="filter-btn px-5 py-2.5 bg-gray-100 border-none rounded-lg cursor-pointer text-sm font-medium transition-all hover:-translate-y-0.5 shadow-sm" data-filter="completed">Completed</button>
+            </div>
+            <div class="flex items-center bg-white border border-gray-200 rounded-lg px-4 py-2.5 shadow-sm transition-all focus-within:border-purple-700 focus-within:ring-2 focus-within:ring-purple-200 w-full sm:w-auto">
+                <i class="fas fa-search text-gray-400 mr-2"></i>
+                <input type="text" id="search-input" placeholder="Search tasks..." class="outline-none w-full bg-transparent">
+            </div>
+        </div>
+
+        <div id="todos-container" class="p-6 max-h-96 overflow-y-auto custom-scrollbar">
+            <div id="empty-state" class="text-center py-10 px-5 text-gray-500">
+                <i class="fas fa-clipboard-list text-6xl mb-5 text-gray-300 opacity-70"></i>
+                <p class="text-lg font-medium">No tasks yet. Add a task to get started!</p>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 p-5 flex justify-between text-sm text-gray-600 border-t border-gray-200">
+            <span id="total-tasks">Total: 0 tasks</span>
+            <span id="completed-tasks">Completed: 0 tasks</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // DOM Elements
+            const todoInput = document.getElementById('todo-input');
+            const addBtn = document.getElementById('add-btn');
+            const todosContainer = document.getElementById('todos-container');
+            const emptyState = document.getElementById('empty-state');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const searchInput = document.getElementById('search-input');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const totalTasksEl = document.getElementById('total-tasks');
+            const completedTasksEl = document.getElementById('completed-tasks');
+
+            // State variables
+            let todos = JSON.parse(localStorage.getItem('todos')) || [];
+            let currentFilter = 'all';
+            let searchTerm = '';
+
+            // Initialize the app
+            function init() {
+                renderTodos();
+                updateProgress();
+                updateStats();
+
+                // Event listeners
+                addBtn.addEventListener('click', addTodo);
+                todoInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') addTodo();
+                });
+
+                searchInput.addEventListener('input', function () {
+                    searchTerm = this.value.toLowerCase();
+                    renderTodos();
+                });
+
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        filterBtns.forEach(b => b.classList.remove('filter-active', 'text-white'));
+                        this.classList.add('filter-active', 'text-white');
+                        currentFilter = this.dataset.filter;
+                        renderTodos();
+                    });
+                });
+            }
+
+            // Add a new todo
+            function addTodo() {
+                const text = todoInput.value.trim();
+                if (text === '') return;
+
+                const newTodo = {
+                    id: Date.now(),
+                    text: text,
+                    completed: false,
+                    date: new Date().toISOString(),
+                    editDate: null
+                };
+
+                todos.unshift(newTodo);
+                saveTodos();
+                renderTodos();
+                updateProgress();
+                updateStats();
+
+                todoInput.value = '';
+                todoInput.focus();
+            }
+
+            // Render todos based on filter and search
+            function renderTodos() {
+                let filteredTodos = todos;
+
+                // Apply filter
+                if (currentFilter === 'active') {
+                    filteredTodos = filteredTodos.filter(todo => !todo.completed);
+                } else if (currentFilter === 'completed') {
+                    filteredTodos = filteredTodos.filter(todo => todo.completed);
+                }
+
+                // Apply search
+                if (searchTerm) {
+                    filteredTodos = filteredTodos.filter(todo =>
+                        todo.text.toLowerCase().includes(searchTerm)
+                    );
+                }
+
+                // Render or show empty state
+                if (filteredTodos.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    todosContainer.innerHTML = '';
+                    todosContainer.appendChild(emptyState);
+                } else {
+                    emptyState.classList.add('hidden');
+                    todosContainer.innerHTML = '';
+
+                    filteredTodos.forEach(todo => {
+                        const todoElement = createTodoElement(todo);
+                        todosContainer.appendChild(todoElement);
+                    });
+                }
+            }
+
+            // Create todo element
+            function createTodoElement(todo) {
+                const todoEl = document.createElement('div');
+                todoEl.className = `flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white rounded-xl mb-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow border-l-4 ${todo.completed ? 'border-green-500 bg-gray-50' : 'border-purple-700'}`;
+
+                const todoMain = document.createElement('div');
+                todoMain.className = 'flex items-start mb-3 sm:mb-0 sm:flex-1';
+
+                const check = document.createElement('input');
+                check.type = 'checkbox';
+                check.className = 'mt-1 mr-4 cursor-pointer';
+                check.checked = todo.completed;
+                check.addEventListener('change', () => toggleComplete(todo.id));
+
+                const textContainer = document.createElement('div');
+                textContainer.className = 'flex-1';
+
+                const text = document.createElement('div');
+                text.className = `text-base font-medium ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`;
+                text.textContent = todo.text;
+
+                const date = document.createElement('div');
+                date.className = 'text-xs text-gray-500 mt-1';
+                date.textContent = formatDate(todo.date);
+
+                textContainer.appendChild(text);
+                textContainer.appendChild(date);
+
+                if (todo.editDate) {
+                    const editDate = document.createElement('div');
+                    editDate.className = 'text-xs text-gray-500 mt-1';
+                    editDate.textContent = `Edited: ${formatDate(todo.editDate)}`;
+                    textContainer.appendChild(editDate);
+                }
+
+                const actions = document.createElement('div');
+                actions.className = 'flex gap-3 self-end sm:self-auto';
+
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '<i class="fas fa-edit text-gray-500 hover:text-purple-700 transition-colors"></i>';
+                editBtn.addEventListener('click', () => editTodo(todo.id, text));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i class="fas fa-trash text-gray-500 hover:text-red-500 transition-colors"></i>';
+                deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+
+                actions.appendChild(editBtn);
+                actions.appendChild(deleteBtn);
+
+                todoMain.appendChild(check);
+                todoMain.appendChild(textContainer);
+
+                todoEl.appendChild(todoMain);
+                todoEl.appendChild(actions);
+
+                return todoEl;
+            }
+
+            // Toggle complete status
+            function toggleComplete(id) {
+                todos = todos.map(todo => {
+                    if (todo.id === id) {
+                        return { ...todo, completed: !todo.completed };
+                    }
+                    return todo;
+                });
+
+                saveTodos();
+                renderTodos();
+                updateProgress();
+                updateStats();
+            }
+
+            // Edit todo
+            function editTodo(id, textElement) {
+                const todo = todos.find(t => t.id === id);
+                if (!todo) return;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'edit-input w-full px-3 py-2 border-2 border-purple-700 rounded-lg font-medium outline-none';
+                input.value = todo.text;
+
+                // Replace text with input
+                const parent = textElement.parentNode;
+                parent.replaceChild(input, textElement);
+                input.focus();
+
+                // Save on blur or enter
+                function saveEdit() {
+                    const newText = input.value.trim();
+                    if (newText && newText !== todo.text) {
+                        todo.text = newText;
+                        todo.editDate = new Date().toISOString();
+                        saveTodos();
+                    }
+
+                    // Re-render the todo
+                    renderTodos();
+                }
+
+                input.addEventListener('blur', saveEdit);
+                input.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        saveEdit();
+                    }
+                });
+            }
+
+            // Delete todo
+            function deleteTodo(id) {
+                if (confirm('Are you sure you want to delete this task?')) {
+                    todos = todos.filter(todo => todo.id !== id);
+                    saveTodos();
+                    renderTodos();
+                    updateProgress();
+                    updateStats();
+                }
+            }
+
+            // Update progress bar
+            function updateProgress() {
+                const total = todos.length;
+                if (total === 0) {
+                    progressBar.style.width = '0%';
+                    progressText.textContent = '0% Complete';
+                    return;
+                }
+
+                const completed = todos.filter(todo => todo.completed).length;
+                const percentage = Math.round((completed / total) * 100);
+
+                progressBar.style.width = `${percentage}%`;
+                progressText.textContent = `${percentage}% Complete`;
+            }
+
+            // Update stats
+            function updateStats() {
+                const total = todos.length;
+                const completed = todos.filter(todo => todo.completed).length;
+
+                totalTasksEl.textContent = `Total: ${total} tasks`;
+                completedTasksEl.textContent = `Completed: ${completed} tasks`;
+            }
+
+            // Format date for display
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return `Added: ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            }
+
+            // Save todos to localStorage
+            function saveTodos() {
+                localStorage.setItem('todos', JSON.stringify(todos));
+            }
+
+            // Initialize the app
+            init();
+        });
+    </script>
+</body>
+
+</html>
